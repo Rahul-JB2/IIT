@@ -41,10 +41,13 @@ import { OneDayBeforeTestMode } from './components/OneDayBeforeTestMode';
 import { StrategyCoach } from './components/StrategyCoach';
 import { ProfileView } from './components/ProfileView';
 import { RegainStudyGuard } from './components/RegainStudyGuard';
+import { GeminiAssistantModal } from './components/GeminiAssistantModal';
+import { Sparkles, Bot } from 'lucide-react';
 
 export default function App() {
   const [state, setState] = useState<UserStudyState>(() => loadUserStudyState());
   const [activeTab, setActiveTab] = useState<string>('daily-goals');
+  const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
   
   // Firebase Auth state
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -548,6 +551,7 @@ export default function App() {
         streak={state.dailyStreak}
         totalStudyHours={state.studyHoursLoggedTotal}
         onReset={handleResetData}
+        onOpenAssistant={() => setIsAssistantOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -629,6 +633,7 @@ export default function App() {
             onDeleteResult={handleDeleteMockResult}
             preselectedTest={preselectedTestForScore}
             onSelectChapter={(ch) => setSelectedChapterForModal(ch)}
+            onToggleMilestone={(chId, mKey) => handleToggleMilestone(chId, mKey)}
           />
         )}
 
@@ -693,6 +698,43 @@ export default function App() {
         userPhoto={currentUser?.photoURL}
         isCloudSynced={!!currentUser}
       />
+
+      {/* Floating Gemini Voice & Progress Assistant Trigger */}
+      <button
+        onClick={() => setIsAssistantOpen(true)}
+        className="fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-40 bg-gradient-to-tr from-sky-500 via-indigo-600 to-amber-400 p-[2px] rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all group"
+        title="Open Gemini Voice & Text Assistant (Auto-mark progress & check pending tasks)"
+      >
+        <div className="bg-slate-950 hover:bg-slate-900 px-3.5 py-2.5 rounded-full flex items-center gap-2 text-white transition-colors">
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+          <span className="text-xs font-bold tracking-tight bg-gradient-to-r from-amber-300 via-white to-sky-300 bg-clip-text text-transparent">
+            Ask Gemini
+          </span>
+        </div>
+      </button>
+
+      {/* Google Gemini Super-50 Voice & Progress Assistant Modal */}
+      <GeminiAssistantModal
+        isOpen={isAssistantOpen}
+        onClose={() => setIsAssistantOpen(false)}
+        studyState={state}
+        todayGoals={currentPlan.goals}
+        overdueViolations={overdueViolations}
+        onToggleMilestone={(chId, mKey, status) => handleToggleMilestone(chId, mKey, status)}
+        onLogStudyMinutes={handleLogStudyMinutes}
+        onAddQuestions={handleAddQuestions}
+        onActivatePunishment={(active, reason) => {
+          setState((prev) => ({
+            ...prev,
+            punishmentLockdown: {
+              active,
+              reason,
+              triggeredDate: prev.currentSimulatedDate,
+            },
+          }));
+        }}
+      />
     </div>
   );
-}
+};

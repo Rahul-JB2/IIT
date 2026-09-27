@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Chapter, MockTestResult, TestSchedule, UserStudyState } from '../types/jee';
+import { Chapter, DailyGoalItem, MilestoneKey, MockTestResult, TestSchedule, UserStudyState } from '../types/jee';
 import { ALL_TESTS, ALL_CHAPTERS } from '../data/super50Data';
 import { Trophy, Plus, Trash2, TrendingUp, AlertTriangle, CheckCircle2, Award, Flame, BarChart2 } from 'lucide-react';
 import { ChapterMasteryHeatmap } from './ChapterMasteryHeatmap';
+import { ConceptualGapFinder } from './ConceptualGapFinder';
+import { AIQuizModal } from './AIQuizModal';
 
 interface TestScoreTrackerProps {
   mockResults: MockTestResult[];
@@ -11,6 +13,7 @@ interface TestScoreTrackerProps {
   onDeleteResult: (id: string) => void;
   preselectedTest?: TestSchedule | null;
   onSelectChapter?: (chapter: Chapter) => void;
+  onToggleMilestone?: (chapterId: string, milestoneKey: MilestoneKey) => void;
 }
 
 export const TestScoreTracker: React.FC<TestScoreTrackerProps> = ({
@@ -20,9 +23,11 @@ export const TestScoreTracker: React.FC<TestScoreTrackerProps> = ({
   onDeleteResult,
   preselectedTest,
   onSelectChapter,
+  onToggleMilestone,
 }) => {
   const [isFormOpen, setIsFormOpen] = useState(!!preselectedTest);
   const [selectedTestId, setSelectedTestId] = useState(preselectedTest?.id || ALL_TESTS[0].id);
+  const [remediationQuizGoal, setRemediationQuizGoal] = useState<{ chapter: Chapter; milestoneKey: MilestoneKey } | null>(null);
   const [date, setDate] = useState(preselectedTest?.date || new Date().toISOString().split('T')[0]);
   const [physicsScore, setPhysicsScore] = useState<number>(0);
   const [chemScore, setChemScore] = useState<number>(0);
@@ -297,6 +302,15 @@ export const TestScoreTracker: React.FC<TestScoreTrackerProps> = ({
         onSelectChapter={onSelectChapter}
       />
 
+      {/* NEW: Conceptual Gap Finder & Milestone Cross-Referencer */}
+      <ConceptualGapFinder
+        mockResults={mockResults}
+        chapterProgress={chapterProgress}
+        onSelectChapter={onSelectChapter}
+        onToggleMilestone={onToggleMilestone}
+        onLaunchQuizForGap={(ch, mKey) => setRemediationQuizGoal({ chapter: ch, milestoneKey: mKey })}
+      />
+
       {/* Mock Results History */}
       {mockResults.length === 0 ? (
         <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-10 text-center space-y-3">
@@ -408,6 +422,27 @@ export const TestScoreTracker: React.FC<TestScoreTrackerProps> = ({
             );
           })}
         </div>
+      )}
+
+      {/* Remediation Quiz Modal for Found Gap */}
+      {remediationQuizGoal && (
+        <AIQuizModal
+          goal={{
+            id: `gap-${remediationQuizGoal.chapter.id}-${remediationQuizGoal.milestoneKey}`,
+            subject: remediationQuizGoal.chapter.subject,
+            chemBranch: remediationQuizGoal.chapter.chemBranch,
+            chapterId: remediationQuizGoal.chapter.id,
+            chapterName: remediationQuizGoal.chapter.name,
+            milestoneKey: remediationQuizGoal.milestoneKey,
+            milestoneTitle: `Remediation Drill: ${remediationQuizGoal.chapter.name}`,
+            targetMinutes: 25,
+            completed: false,
+          }}
+          onClose={() => setRemediationQuizGoal(null)}
+          onMarkMilestoneCompleted={(chId, mKey) => {
+            if (onToggleMilestone) onToggleMilestone(chId, mKey);
+          }}
+        />
       )}
     </div>
   );

@@ -15,6 +15,7 @@ import {
   User,
   CheckCircle2,
   Calendar,
+  Sparkles,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -27,6 +28,7 @@ interface HeaderProps {
   onReset: () => void;
   userEmail?: string | null;
   isCloudSynced?: boolean;
+  onOpenAssistant?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -39,6 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   onReset,
   userEmail,
   isCloudSynced,
+  onOpenAssistant,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -126,6 +129,18 @@ export const Header: React.FC<HeaderProps> = ({
                   +1d
                 </button>
               </div>
+
+              {/* Gemini AI Assistant Button */}
+              {onOpenAssistant && (
+                <button
+                  onClick={onOpenAssistant}
+                  title="Open Gemini AI Voice & Text Assistant"
+                  className="px-2.5 py-1 bg-gradient-to-r from-sky-500/20 via-indigo-500/25 to-amber-500/20 hover:from-sky-500/30 hover:to-amber-500/30 border border-amber-400/50 rounded-lg text-amber-300 flex items-center gap-1.5 text-xs font-bold transition-all shadow-sm group"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-12 transition-transform" />
+                  <span className="font-mono">Gemini AI</span>
+                </button>
+              )}
 
               {/* Profile / Sync button */}
               <button
