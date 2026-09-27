@@ -43,6 +43,7 @@ export function getDefaultInitialState(): UserStudyState {
       '2026-09-25': { total: 60, physics: 20, chemistry: 20, math: 20 },
     },
     unlockedBadgeIds: ['triad-start', 'summary-starter'],
+    targetDailyStudyHours: 8.0,
     energyProfile: {
       peakAlertSlot: 'morning',
       prioritizeHardestInPeakHours: true,
@@ -89,6 +90,9 @@ export function loadUserStudyState(): UserStudyState {
           Math: 'High',
         },
       };
+    }
+    if (!parsed.targetDailyStudyHours) {
+      parsed.targetDailyStudyHours = 8.0;
     }
     return parsed;
   } catch (err) {

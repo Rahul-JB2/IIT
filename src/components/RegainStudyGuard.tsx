@@ -200,38 +200,38 @@ export const RegainStudyGuard: React.FC<RegainStudyGuardProps> = ({
         </div>
       </div>
 
-      {/* PUNISHMENT LOCKDOWN NOTICE IN REGAIN GUARD */}
+      {/* PUNISHMENT LOCKDOWN NOTICE IN REGAIN GUARD (30% Dimensions) */}
       {isPunishmentActive && (
-        <div className="bg-gradient-to-r from-rose-950 via-rose-900 to-rose-950 border-2 border-rose-500 rounded-2xl p-5 shadow-2xl space-y-3 text-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-600/30 border border-rose-400 flex items-center justify-center shrink-0">
-              <ShieldAlert className="w-6 h-6 text-rose-300 animate-pulse" />
+        <div className="bg-gradient-to-r from-rose-950/90 via-slate-900 to-rose-950/90 border border-rose-500/80 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 shadow-lg shadow-rose-950/30 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-rose-600/30 border border-rose-400 flex items-center justify-center shrink-0">
+              <ShieldAlert className="w-4 h-4 text-rose-300 animate-pulse" />
             </div>
-            <div>
-              <span className="text-[11px] font-mono text-rose-300 font-bold uppercase tracking-wider block">
-                Disciplinary Punishment System Active
-              </span>
-              <h3 className="text-base sm:text-lg font-bold">
-                YouTube, Chrome & Media Players Fully Locked Down
-              </h3>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-mono text-rose-300 font-bold uppercase tracking-wider bg-rose-950 px-1.5 py-0.5 rounded border border-rose-800">
+                  Lockdown Active
+                </span>
+                <span className="text-xs font-semibold text-rose-100 truncate">
+                  Entertainment Apps Locked: <u>{overdueViolations[0].chapter.name}</u>
+                </span>
+              </div>
+              <p className="text-[10px] text-rose-300/80 truncate font-mono">
+                1-Page Summary overdue since {overdueViolations[0].theoryCompletedDate}. Complete summary to disable lockdown.
+              </p>
             </div>
           </div>
-          <p className="text-xs text-rose-200 leading-relaxed bg-slate-950/70 p-3 rounded-xl border border-rose-800/60 font-mono">
-            <strong>Reason:</strong> Theory for <u>{overdueViolations[0].chapter.name}</u> was completed on {overdueViolations[0].theoryCompletedDate}, but the 1-Page Summary conclusion was not finished within 24 hours. The protection shield cannot be toggled OFF until this summary is written!
-          </p>
-          <div className="flex items-center justify-end">
-            <button
-              onClick={() => {
-                if (onOpenSummaryModal) {
-                  onOpenSummaryModal(overdueViolations[0].chapter);
-                }
-              }}
-              className="px-4 py-2 text-xs font-bold text-slate-950 bg-rose-300 hover:bg-rose-200 rounded-lg shadow-md transition-colors flex items-center gap-1.5"
-            >
-              <BookOpen className="w-4 h-4" />
-              Complete 1-Page Summary for {overdueViolations[0].chapter.name}
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              if (onOpenSummaryModal) {
+                onOpenSummaryModal(overdueViolations[0].chapter);
+              }
+            }}
+            className="px-3 py-1.5 text-xs font-bold text-slate-950 bg-rose-300 hover:bg-rose-200 rounded-lg shadow transition-colors flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Complete Summary</span>
+          </button>
         </div>
       )}
 

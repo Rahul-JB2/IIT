@@ -45,6 +45,10 @@ import {
   Sun,
   Moon,
   Sunrise,
+  AlertTriangle,
+  Edit2,
+  Save,
+  Minus,
 } from 'lucide-react';
 
 interface DailyPCMGoalsProps {
@@ -62,6 +66,8 @@ interface DailyPCMGoalsProps {
   onOpenChapterModal?: (chapter: Chapter) => void;
   dailyHoursToday?: number;
   onUpdateDailyHours?: (hours: number) => void;
+  targetDailyHours?: number;
+  onUpdateTargetDailyHours?: (hours: number) => void;
   dailyQuestions?: { total: number; physics: number; chemistry: number; math: number };
   onAddQuestions?: (subject: SubjectType, count: number) => void;
   overdueViolations?: OverdueSummaryViolation[];
@@ -84,6 +90,8 @@ export const DailyPCMGoals: React.FC<DailyPCMGoalsProps> = ({
   onOpenChapterModal,
   dailyHoursToday = 6.5,
   onUpdateDailyHours,
+  targetDailyHours = 8.0,
+  onUpdateTargetDailyHours,
   dailyQuestions = { total: 72, physics: 28, chemistry: 24, math: 20 },
   onAddQuestions,
   overdueViolations = [],
@@ -120,6 +128,14 @@ export const DailyPCMGoals: React.FC<DailyPCMGoalsProps> = ({
 
   // Chapter swap modal/dropdown state
   const [swappingGoalId, setSwappingGoalId] = useState<string | null>(null);
+
+  // Target Daily Study Hours state
+  const [isEditingTarget, setIsEditingTarget] = useState<boolean>(false);
+  const [customTargetInput, setCustomTargetInput] = useState<string>(targetDailyHours.toString());
+
+  useEffect(() => {
+    setCustomTargetInput(targetDailyHours.toString());
+  }, [targetDailyHours]);
 
   // Sync selected focus goal if plan changes
   useEffect(() => {
@@ -354,63 +370,45 @@ export const DailyPCMGoals: React.FC<DailyPCMGoalsProps> = ({
         )}
       </div>
 
-      {/* 1-PAGE SUMMARY PUNISHMENT LOCKDOWN SIREN ALERT */}
+      {/* 1-PAGE SUMMARY PUNISHMENT/DISCIPLINE LOCKDOWN SIREN ALERT (Compact 30% Dimensions) */}
       {overdueViolations.length > 0 && (
-        <div className="bg-gradient-to-r from-rose-950 via-rose-900 to-rose-950 border-2 border-rose-500 rounded-2xl p-5 shadow-2xl shadow-rose-950/60 animate-pulse text-white space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-600/30 border border-rose-400 flex items-center justify-center shrink-0">
-                <ShieldAlert className="w-6 h-6 text-rose-300 animate-bounce" />
-              </div>
-              <div>
-                <span className="text-[11px] font-mono uppercase tracking-widest text-rose-300 font-bold block">
-                  Strict Super-50 Discipline Enforcement
+        <div className="bg-gradient-to-r from-rose-950/90 via-slate-900 to-rose-950/90 border border-rose-500/80 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 shadow-lg shadow-rose-950/30 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-rose-600/30 border border-rose-400 flex items-center justify-center shrink-0">
+              <ShieldAlert className="w-4 h-4 text-rose-300 animate-pulse" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-rose-300 font-bold bg-rose-950/90 border border-rose-800/80 px-1.5 py-0.5 rounded">
+                  Lockdown Active
                 </span>
-                <h3 className="text-base sm:text-lg font-extrabold tracking-tight text-white">
-                  🚨 PUNISHMENT LOCKDOWN ACTIVE: 1-PAGE SUMMARY OVERDUE!
-                </h3>
+                <span className="text-xs font-semibold text-rose-100 truncate">
+                  1-Page Summary Overdue: <span className="underline decoration-rose-400">{overdueViolations[0].chapter.name}</span>
+                </span>
               </div>
-            </div>
-            <span className="text-[10px] font-mono bg-rose-950 px-2.5 py-1 rounded-md border border-rose-700/60 font-bold shrink-0">
-              LOCKDOWN ACTIVE
-            </span>
-          </div>
-
-          <div className="bg-slate-950/80 rounded-xl p-3.5 border border-rose-800/60 text-xs space-y-2">
-            <p className="text-rose-200 leading-relaxed">
-              <strong>Violation Detected:</strong> You completed Theory for{' '}
-              <strong className="text-white underline decoration-rose-400">
-                {overdueViolations[0].chapter.name}
-              </strong>{' '}
-              on {overdueViolations[0].theoryCompletedDate}, but the mandatory 1-Page Summary conclusion was not completed within the 24-hour window!
-            </p>
-            <div className="p-2.5 bg-rose-950/60 rounded-lg border border-rose-800/80 text-[11px] text-rose-300 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-400 shrink-0" />
-              <span>
-                <strong>Penalty Enforced:</strong> YouTube, Chrome browsing, audio/video players, and reels are completely blocked until your 1-page summary is written!
-              </span>
+              <p className="text-[10px] text-rose-300/80 truncate">
+                Entertainment apps blocked. Write 1-page summary to release app lockdown.
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-1">
-            <button
-              onClick={() => {
-                if (onOpenChapterModal) {
-                  onOpenChapterModal(overdueViolations[0].chapter);
-                }
-              }}
-              className="px-5 py-2.5 text-xs font-bold text-slate-950 bg-rose-300 hover:bg-rose-200 rounded-xl shadow-lg shadow-rose-950 transition-all flex items-center gap-1.5"
-            >
-              <BookOpen className="w-4 h-4" />
-              Write 1-Page Summary Now to Release App Lockdown
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              if (onOpenChapterModal) {
+                onOpenChapterModal(overdueViolations[0].chapter);
+              }
+            }}
+            className="px-3 py-1.5 text-xs font-bold text-slate-950 bg-rose-300 hover:bg-rose-200 rounded-lg shadow-sm transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Write Summary</span>
+          </button>
         </div>
       )}
 
       {/* DAILY HOURS TRACKER & 100-QUESTION PRACTICE QUOTA SECTION */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Daily Study Hours Tracker Card */}
+        {/* Daily Study Hours Tracker Card (Editable Target & Total Time Completion Mandate) */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 sm:p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -419,20 +417,90 @@ export const DailyPCMGoals: React.FC<DailyPCMGoalsProps> = ({
                 Daily Study Hours Tracker
               </h3>
             </div>
-            <span className="text-xs font-mono font-bold text-sky-400 bg-sky-950/60 border border-sky-800/60 px-2 py-0.5 rounded">
-              Target: 8.0h / day
-            </span>
+            
+            {/* Interactive Target Hours Controller */}
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-mono font-bold text-sky-400 bg-sky-950/60 border border-sky-800/60 px-2 py-0.5 rounded">
+                Target: {targetDailyHours.toFixed(1)}h / day
+              </span>
+              <button
+                onClick={() => setIsEditingTarget(!isEditingTarget)}
+                title="Change Daily Target Study Hours"
+                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-sky-300 border border-slate-700 transition"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
+            </div>
           </div>
 
+          {/* Target Hours Customizer Drawer */}
+          {isEditingTarget && (
+            <div className="p-3 bg-slate-950 border border-sky-500/40 rounded-xl space-y-2 text-xs animate-in fade-in">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-slate-200">Change Daily Target Hours:</span>
+                <span className="text-[10px] text-sky-400 font-mono">Min 2h • Max 16h</span>
+              </div>
+              
+              {/* Stepper & Presets */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const next = Math.max(2, targetDailyHours - 0.5);
+                    if (onUpdateTargetDailyHours) onUpdateTargetDailyHours(next);
+                  }}
+                  className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded font-mono font-bold"
+                >
+                  -0.5h
+                </button>
+                <div className="flex-1 text-center font-mono font-bold text-sky-300 text-sm bg-slate-900 py-1 rounded border border-slate-800">
+                  {targetDailyHours.toFixed(1)} Hours
+                </div>
+                <button
+                  onClick={() => {
+                    const next = Math.min(16, targetDailyHours + 0.5);
+                    if (onUpdateTargetDailyHours) onUpdateTargetDailyHours(next);
+                  }}
+                  className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded font-mono font-bold"
+                >
+                  +0.5h
+                </button>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex items-center justify-between gap-1 pt-1">
+                {[6, 8, 10, 12].map((preset) => (
+                  <button
+                    key={preset}
+                    onClick={() => {
+                      if (onUpdateTargetDailyHours) onUpdateTargetDailyHours(preset);
+                      setIsEditingTarget(false);
+                    }}
+                    className={`flex-1 py-1 rounded font-mono text-[11px] transition ${
+                      targetDailyHours === preset
+                        ? 'bg-sky-500 text-slate-950 font-bold'
+                        : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                    }`}
+                  >
+                    {preset}.0h
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-400 italic">
+                💡 Note: Aap target change kar sakte hain, par set kiya hua total time complete karna hoga!
+              </p>
+            </div>
+          )}
+
+          {/* Current Logged vs Target Progress */}
           <div className="flex items-baseline justify-between font-mono">
             <div>
               <span className="text-2xl font-extrabold text-white tabular-nums">
                 {dailyHoursToday.toFixed(1)}h
               </span>
-              <span className="text-xs text-slate-400 ml-1.5">Logged Today</span>
+              <span className="text-xs text-slate-400 ml-1.5">/ {targetDailyHours.toFixed(1)}h Total Target</span>
             </div>
-            <span className="text-xs text-slate-400">
-              {Math.min(100, Math.round((dailyHoursToday / 8.0) * 100))}% of Goal
+            <span className="text-xs text-slate-400 font-bold">
+              {Math.min(100, Math.round((dailyHoursToday / targetDailyHours) * 100))}% of Goal
             </span>
           </div>
 
@@ -440,15 +508,42 @@ export const DailyPCMGoals: React.FC<DailyPCMGoalsProps> = ({
           <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                dailyHoursToday >= 8.0 ? 'bg-emerald-400' : 'bg-sky-400'
+                dailyHoursToday >= targetDailyHours ? 'bg-emerald-400' : 'bg-sky-400'
               }`}
-              style={{ width: `${Math.min(100, (dailyHoursToday / 8.0) * 100)}%` }}
+              style={{ width: `${Math.min(100, (dailyHoursToday / targetDailyHours) * 100)}%` }}
             />
           </div>
 
+          {/* Mandatory Total Time Completion Status Banner */}
+          {dailyHoursToday < targetDailyHours ? (
+            <div className="p-2.5 rounded-lg bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between gap-2 font-mono">
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <span className="truncate">
+                  <strong>{(targetDailyHours - dailyHoursToday).toFixed(1)}h Remaining:</strong> Total time complete karna mandatory hai!
+                </span>
+              </div>
+              <span className="text-[10px] bg-amber-950 border border-amber-800 text-amber-300 px-2 py-0.5 rounded font-bold shrink-0">
+                Incomplete
+              </span>
+            </div>
+          ) : (
+            <div className="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/50 text-emerald-200 text-xs flex items-center justify-between gap-2 font-mono">
+              <div className="flex items-center gap-2 min-w-0">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="truncate">
+                  <strong>Daily Quota Fulfilled:</strong> Total study time ({dailyHoursToday.toFixed(1)}h / {targetDailyHours.toFixed(1)}h) 100% complete!
+                </span>
+              </div>
+              <span className="text-[10px] bg-emerald-950 border border-emerald-700 text-emerald-300 px-2 py-0.5 rounded font-bold shrink-0">
+                ✅ Complete
+              </span>
+            </div>
+          )}
+
           {/* Quick Increment Buttons */}
-          <div className="flex items-center gap-2 pt-1">
-            <span className="text-[11px] text-slate-400 font-mono">Quick Log:</span>
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
+            <span className="text-[11px] text-slate-400 font-mono">Log Study Time:</span>
             {[
               { label: '+15m', hrs: 0.25 },
               { label: '+30m', hrs: 0.5 },

@@ -29,8 +29,13 @@ import {
   Trophy,
   Zap,
   Lock,
+  Smartphone,
 } from 'lucide-react';
 import { calculateAchievements } from '../utils/achievementEngine';
+import { usePWAInstall } from '../hooks/usePWAInstall';
+import { AndroidInstallModal } from './AndroidInstallModal';
+import { AndroidAppBlocker } from './AndroidAppBlocker';
+import { BlockedAppConfig } from '../types/jee';
 
 interface ProfileViewProps {
   currentUser: User | null;
@@ -39,6 +44,10 @@ interface ProfileViewProps {
   onManualSync: () => Promise<void>;
   isSyncing: boolean;
   lastSyncTime: string | null;
+  onNavigateTab?: (tabId: string) => void;
+  onOpenRewardStore?: () => void;
+  onToggleAndroidPermission?: (permId: string, granted: boolean) => void;
+  onSimulateAppLaunch?: (app: BlockedAppConfig) => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -48,6 +57,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onManualSync,
   isSyncing,
   lastSyncTime,
+  onNavigateTab,
+  onOpenRewardStore,
+  onToggleAndroidPermission,
+  onSimulateAppLaunch,
 }) => {
   const [profileData, setProfileData] = useState<Partial<UserProfileData>>({
     displayName: currentUser?.displayName || 'JEE Super-50 Aspirant',
@@ -63,6 +76,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [achievementFilter, setAchievementFilter] = useState<'all' | 'unlocked' | 'locked'>('all');
+  const [showInstallModal, setShowInstallModal] = useState(false);
+
+  const { isInstalled, isInstallable, install } = usePWAInstall();
 
   const achievements = useMemo<AchievementBadge[]>(() => calculateAchievements(studyState), [studyState]);
   const unlockedCount = achievements.filter((a: AchievementBadge) => a.isUnlocked).length;
@@ -562,6 +578,173 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       </div>
 
+      {/* Quick Launch Shortcuts: Chapter Matrix, Pre-Test Blitz, Study Guard */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 sm:p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-amber-400" />
+            <span>Super-50 Core Modules & Tools</span>
+          </h3>
+          <span className="text-[10px] text-slate-400 font-mono">Quick Access</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('chapter-matrix')}
+            className="p-3 bg-slate-950/80 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/50 rounded-xl text-left transition-all group"
+          >
+            <div className="flex items-center justify-between text-xs font-bold text-white mb-1">
+              <span>6-Milestone Matrix</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-12 transition-transform" />
+            </div>
+            <p className="text-[11px] text-slate-400 leading-tight">
+              PCM milestone checkboxes (Lectures, Notes, PYQs, Revision).
+            </p>
+          </button>
+
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('pre-test-mode')}
+            className="p-3 bg-slate-950/80 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/50 rounded-xl text-left transition-all group"
+          >
+            <div className="flex items-center justify-between text-xs font-bold text-white mb-1">
+              <span>Pre-Test 1-Day Blitz</span>
+              <Zap className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+            </div>
+            <p className="text-[11px] text-slate-400 leading-tight">
+              Rapid formula recall & 24h syllabus drill before imminent test.
+            </p>
+          </button>
+
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('study-guard')}
+            className="p-3 bg-slate-950/80 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/50 rounded-xl text-left transition-all group"
+          >
+            <div className="flex items-center justify-between text-xs font-bold text-white mb-1">
+              <span>Regain Study Guard</span>
+              <Lock className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+            </div>
+            <p className="text-[11px] text-slate-400 leading-tight">
+              Study-only Shorts vault, 10s friction pause & distraction blocker.
+            </p>
+          </button>
+        </div>
+      </div>
+
+      {/* JEE Mastery Points & Game Rewards Card */}
+      <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-orange-950/40 border border-amber-500/40 rounded-xl p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-amber-500/20 shrink-0">
+              <Sparkles className="w-5 h-5 stroke-[2.5]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-white">
+                  JEE Mastery Points & Game Rewards Store
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold">
+                  {studyState.masteryPoints || 0} Pts
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Redeem points to unlock Pocket FM stories, YouTube breaks, or phone games!
+              </p>
+            </div>
+          </div>
+
+          {onOpenRewardStore && (
+            <button
+              onClick={onOpenRewardStore}
+              className="px-4 py-2 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 rounded-lg shadow-md shadow-amber-500/10 flex items-center gap-1.5 self-start sm:self-auto transition active:scale-95"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Open Rewards Store</span>
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div className="p-2.5 bg-slate-950/70 border border-slate-800 rounded-lg">
+            <span className="text-slate-400 text-[10px] block">Pocket FM Story</span>
+            <span className="text-amber-400 font-bold font-mono">15m / 50 pts</span>
+          </div>
+          <div className="p-2.5 bg-slate-950/70 border border-slate-800 rounded-lg">
+            <span className="text-slate-400 text-[10px] block">YouTube Break</span>
+            <span className="text-rose-400 font-bold font-mono">15m / 60 pts</span>
+          </div>
+          <div className="p-2.5 bg-slate-950/70 border border-slate-800 rounded-lg">
+            <span className="text-slate-400 text-[10px] block">Phone Gaming Pass</span>
+            <span className="text-purple-400 font-bold font-mono">20m / 80 pts</span>
+          </div>
+          <div className="p-2.5 bg-slate-950/70 border border-slate-800 rounded-lg">
+            <span className="text-slate-400 text-[10px] block">AI Mock Deep-Dive</span>
+            <span className="text-emerald-400 font-bold font-mono">Free with 40 pts</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Android System Permissions & App Blocker (YouTube, Chrome, Pocket FM, Games) */}
+      <AndroidAppBlocker
+        permissions={studyState.androidPermissions}
+        onTogglePermission={onToggleAndroidPermission}
+        activePasses={studyState.activeRewardPasses || []}
+        onOpenRewardStore={onOpenRewardStore}
+        onSimulateAppLaunch={onSimulateAppLaunch}
+      />
+
+      {/* Android Native App & Installation Status */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-emerald-400" />
+                Android App & Standalone Mode
+              </h3>
+              {isInstalled ? (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-400">
+                  INSTALLED (NO TABS)
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-950 border border-amber-800 text-amber-300">
+                  BROWSER MODE
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              {isInstalled
+                ? 'App is running in native standalone mode. Browser tabs and URL bar are permanently disabled.'
+                : 'Install as an Android App to remove Chrome tabs, run full-screen, and launch directly from phone home screen.'}
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowInstallModal(true)}
+            className="px-4 py-2 text-xs font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 rounded-lg shadow-md shadow-emerald-500/10 flex items-center gap-1.5 self-start sm:self-auto transition"
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span>{isInstalled ? 'App Settings & Info' : 'Install Android App'}</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-lg">
+            <span className="text-slate-400 block text-[11px]">Display Mode</span>
+            <span className="text-white font-mono font-bold">
+              {isInstalled ? 'Standalone (No Tabs)' : 'Browser Window'}
+            </span>
+          </div>
+          <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-lg">
+            <span className="text-slate-400 block text-[11px]">Offline Cache</span>
+            <span className="text-emerald-400 font-mono font-bold">Enabled (Service Worker)</span>
+          </div>
+          <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-lg">
+            <span className="text-slate-400 block text-[11px]">App Footprint</span>
+            <span className="text-sky-400 font-mono font-bold">&lt; 3.2 MB (Zero Lag)</span>
+          </div>
+        </div>
+      </div>
+
       {/* Data Management & Backup */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 sm:p-6 space-y-3">
         <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -593,6 +776,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </label>
         </div>
       </div>
+
+      {/* Android App Install Modal */}
+      <AndroidInstallModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+      />
     </div>
   );
 };

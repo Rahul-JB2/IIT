@@ -230,6 +230,52 @@ export interface PunishmentLockdownState {
   penaltyMinutes?: number;
 }
 
+export interface MasteryReward {
+  id: string;
+  title: string;
+  description: string;
+  costPoints: number;
+  type: 'pocket_fm' | 'youtube' | 'game' | 'gemini_mock_summary' | 'chrome';
+  durationMinutes: number;
+  icon: string;
+  badgeText?: string;
+}
+
+export interface ActiveRewardPass {
+  id: string;
+  rewardId: string;
+  title: string;
+  type: 'pocket_fm' | 'youtube' | 'game' | 'gemini_mock_summary' | 'chrome';
+  durationMinutes: number;
+  activatedAt: string; // ISO string
+  expiresAt: string; // ISO string
+  remainingSeconds: number;
+  appName?: string;
+}
+
+export interface AndroidPermissionConfig {
+  id: string;
+  name: string;
+  permissionKey: string;
+  intentAction: string;
+  description: string;
+  requiredFor: string;
+  granted: boolean;
+  isCritical: boolean;
+}
+
+export interface BlockedAppConfig {
+  id: string;
+  appName: string;
+  packageName: string;
+  category: 'audio' | 'video' | 'browser' | 'games' | 'social';
+  isBlockedByDefault: boolean;
+  allowedWithPassType?: 'pocket_fm' | 'youtube' | 'game' | 'chrome';
+  icon: string;
+  playStoreUrl?: string;
+  launchUrlScheme?: string;
+}
+
 export interface UserStudyState {
   currentSimulatedDate: string; // Default '2026-09-27'
   chapterProgress: Record<string, ChapterProgress>;
@@ -240,9 +286,15 @@ export interface UserStudyState {
   studyHoursLoggedTotal: number;
   focusLogs?: FocusSessionLog[];
   dailyStudyHours?: Record<string, number>; // date -> hours (e.g. '2026-09-27': 8.5)
+  targetDailyStudyHours?: number; // Customizable daily target hours (default 8.0, total time must be completed)
   dailyQuestionsSolved?: Record<string, DailyQuestionsLog>; // date -> { total, physics, chemistry, math }
   unlockedBadgeIds?: string[];
   punishmentLockdown?: PunishmentLockdownState;
   energyProfile?: UserEnergyProfile;
   quizHistory?: QuizSessionResult[];
+  // Game-like Rewards & Android App Blocker
+  masteryPoints?: number; // JEE Mastery Points earned for completing goals/hours
+  activeRewardPasses?: ActiveRewardPass[];
+  androidPermissions?: Record<string, boolean>;
+  blockedAppList?: BlockedAppConfig[];
 }

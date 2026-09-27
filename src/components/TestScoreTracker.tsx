@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Chapter, DailyGoalItem, MilestoneKey, MockTestResult, TestSchedule, UserStudyState } from '../types/jee';
 import { ALL_TESTS, ALL_CHAPTERS } from '../data/super50Data';
-import { Trophy, Plus, Trash2, TrendingUp, AlertTriangle, CheckCircle2, Award, Flame, BarChart2 } from 'lucide-react';
+import { Trophy, Plus, Trash2, TrendingUp, AlertTriangle, CheckCircle2, Award, Flame, BarChart2, Sparkles, Compass } from 'lucide-react';
 import { ChapterMasteryHeatmap } from './ChapterMasteryHeatmap';
 import { ConceptualGapFinder } from './ConceptualGapFinder';
 import { AIQuizModal } from './AIQuizModal';
+import { StrategyCoach } from './StrategyCoach';
 
 interface TestScoreTrackerProps {
   mockResults: MockTestResult[];
@@ -14,6 +15,10 @@ interface TestScoreTrackerProps {
   preselectedTest?: TestSchedule | null;
   onSelectChapter?: (chapter: Chapter) => void;
   onToggleMilestone?: (chapterId: string, milestoneKey: MilestoneKey) => void;
+  currentDate?: string;
+  dailyPlans?: UserStudyState['dailyPlans'];
+  focusLogs?: UserStudyState['focusLogs'];
+  totalStudyHoursLogged?: number;
 }
 
 export const TestScoreTracker: React.FC<TestScoreTrackerProps> = ({
@@ -24,7 +29,12 @@ export const TestScoreTracker: React.FC<TestScoreTrackerProps> = ({
   preselectedTest,
   onSelectChapter,
   onToggleMilestone,
+  currentDate = '2026-09-27',
+  dailyPlans = {},
+  focusLogs = [],
+  totalStudyHoursLogged = 18.5,
 }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'scores' | 'trends'>('scores');
   const [isFormOpen, setIsFormOpen] = useState(!!preselectedTest);
   const [selectedTestId, setSelectedTestId] = useState(preselectedTest?.id || ALL_TESTS[0].id);
   const [remediationQuizGoal, setRemediationQuizGoal] = useState<{ chapter: Chapter; milestoneKey: MilestoneKey } | null>(null);
@@ -84,27 +94,65 @@ export const TestScoreTracker: React.FC<TestScoreTrackerProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header and Add Button */}
-      <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
-            <span className="font-semibold text-amber-400">Performance Log</span>
-            <span aria-hidden="true">·</span>
-            <span>BSEB Super-50 Test Series Scorecard</span>
-          </div>
-          <h2 className="text-xl font-bold text-white tracking-tight">
-            Mock Test Results & Error Analysis
-          </h2>
-        </div>
+      {/* Sub-Tab Navigation Switch: Scores & Heatmap vs Performance Trends & Strategy */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-900/90 border border-slate-800 rounded-xl">
+        <button
+          onClick={() => setActiveSubTab('scores')}
+          className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 ${
+            activeSubTab === 'scores'
+              ? 'bg-amber-400 text-slate-950 shadow-sm'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Award className="w-3.5 h-3.5" />
+          <span>Mock Scores & Mistake Log</span>
+        </button>
 
         <button
-          onClick={() => setIsFormOpen(!isFormOpen)}
-          className="px-4 py-2 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-sm transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+          onClick={() => setActiveSubTab('trends')}
+          className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 ${
+            activeSubTab === 'trends'
+              ? 'bg-amber-400 text-slate-950 shadow-sm'
+              : 'text-slate-400 hover:text-white'
+          }`}
         >
-          <Plus className="w-4 h-4" />
-          {isFormOpen ? 'Close Logger' : 'Log New Test Score'}
+          <TrendingUp className="w-3.5 h-3.5" />
+          <span>7-Day Trends & Strategy Coach</span>
         </button>
       </div>
+
+      {activeSubTab === 'trends' ? (
+        <StrategyCoach
+          currentDate={currentDate}
+          chapterProgress={chapterProgress}
+          mockResults={mockResults}
+          dailyPlans={dailyPlans}
+          focusLogs={focusLogs}
+          totalStudyHoursLogged={totalStudyHoursLogged}
+        />
+      ) : (
+        <>
+          {/* Header and Add Button */}
+          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <span className="font-semibold text-amber-400">Performance Log</span>
+                <span aria-hidden="true">·</span>
+                <span>BSEB Super-50 Test Series Scorecard</span>
+              </div>
+              <h2 className="text-xl font-bold text-white tracking-tight">
+                Mock Test Results & Error Analysis
+              </h2>
+            </div>
+
+            <button
+              onClick={() => setIsFormOpen(!isFormOpen)}
+              className="px-4 py-2 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-sm transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              <Plus className="w-4 h-4" />
+              {isFormOpen ? 'Close Logger' : 'Log New Test Score'}
+            </button>
+          </div>
 
       {/* Logger Form */}
       {isFormOpen && (
@@ -443,6 +491,8 @@ export const TestScoreTracker: React.FC<TestScoreTrackerProps> = ({
             if (onToggleMilestone) onToggleMilestone(chId, mKey);
           }}
         />
+      )}
+        </>
       )}
     </div>
   );

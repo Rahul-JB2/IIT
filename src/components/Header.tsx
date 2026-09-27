@@ -17,6 +17,7 @@ import {
   Calendar,
   Sparkles,
 } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   activeTab: string;
@@ -130,15 +131,18 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               </div>
 
-              {/* Gemini AI Assistant Button */}
+              {/* Android App PWA Install Button */}
+              <PWAInstallButton variant="header" />
+
+              {/* Gemini AI Assistant Button (Always visible small icon) */}
               {onOpenAssistant && (
                 <button
                   onClick={onOpenAssistant}
                   title="Open Gemini AI Voice & Text Assistant"
-                  className="px-2.5 py-1 bg-gradient-to-r from-sky-500/20 via-indigo-500/25 to-amber-500/20 hover:from-sky-500/30 hover:to-amber-500/30 border border-amber-400/50 rounded-lg text-amber-300 flex items-center gap-1.5 text-xs font-bold transition-all shadow-sm group"
+                  className="px-2 sm:px-2.5 py-1 bg-gradient-to-r from-sky-500/20 via-indigo-500/25 to-amber-500/20 hover:from-sky-500/30 hover:to-amber-500/30 border border-amber-400/50 rounded-lg text-amber-300 flex items-center gap-1 sm:gap-1.5 text-xs font-bold transition-all shadow-sm group shrink-0"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-12 transition-transform" />
-                  <span className="font-mono">Gemini AI</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-12 transition-transform shrink-0 animate-pulse" />
+                  <span className="font-mono hidden xs:inline">Gemini</span>
                 </button>
               )}
 
@@ -221,6 +225,9 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Navigation Links */}
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+              <div className="mb-3">
+                <PWAInstallButton variant="drawer" />
+              </div>
               {menuItems.map((item) => {
                 const isActive = activeTab === item.id;
                 const Icon = item.icon;

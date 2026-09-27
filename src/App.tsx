@@ -42,6 +42,8 @@ import { StrategyCoach } from './components/StrategyCoach';
 import { ProfileView } from './components/ProfileView';
 import { RegainStudyGuard } from './components/RegainStudyGuard';
 import { GeminiAssistantModal } from './components/GeminiAssistantModal';
+import { AndroidAppBanner } from './components/AndroidAppBanner';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { Sparkles, Bot } from 'lucide-react';
 
 export default function App() {
@@ -430,6 +432,18 @@ export default function App() {
     });
   };
 
+  // Handler: Update customizable target daily study hours (total time must be completed)
+  const handleUpdateTargetDailyHours = (newTarget: number) => {
+    setState((prev) => {
+      const updated = {
+        ...prev,
+        targetDailyStudyHours: Math.max(1, Math.min(18, newTarget)),
+      };
+      saveUserStudyState(updated);
+      return updated;
+    });
+  };
+
   // Handler: Add practice questions count
   const handleAddQuestions = (subject: SubjectType, count: number) => {
     setState((prev) => {
@@ -554,6 +568,9 @@ export default function App() {
         onOpenAssistant={() => setIsAssistantOpen(true)}
       />
 
+      {/* Android App Install & No-Tabs Banner for Mobile/Browser Users */}
+      <AndroidAppBanner />
+
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         
@@ -583,6 +600,8 @@ export default function App() {
             onOpenChapterModal={(ch) => setSelectedChapterForModal(ch)}
             dailyHoursToday={state.dailyStudyHours?.[state.currentSimulatedDate] ?? 6.5}
             onUpdateDailyHours={handleUpdateDailyHours}
+            targetDailyHours={state.targetDailyStudyHours ?? 8.0}
+            onUpdateTargetDailyHours={handleUpdateTargetDailyHours}
             dailyQuestions={
               state.dailyQuestionsSolved?.[state.currentSimulatedDate] ?? {
                 total: 72,
@@ -697,19 +716,20 @@ export default function App() {
         userEmail={currentUser?.email}
         userPhoto={currentUser?.photoURL}
         isCloudSynced={!!currentUser}
+        onOpenAssistant={() => setIsAssistantOpen(true)}
       />
 
-      {/* Floating Gemini Voice & Progress Assistant Trigger */}
+      {/* Floating Gemini Voice & Progress Assistant Trigger (Always Persistent) */}
       <button
         onClick={() => setIsAssistantOpen(true)}
-        className="fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-40 bg-gradient-to-tr from-sky-500 via-indigo-600 to-amber-400 p-[2px] rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all group"
+        className="fixed bottom-20 sm:bottom-24 right-3 sm:right-6 z-50 bg-gradient-to-tr from-sky-500 via-indigo-600 to-amber-400 p-[2px] rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all group"
         title="Open Gemini Voice & Text Assistant (Auto-mark progress & check pending tasks)"
       >
-        <div className="bg-slate-950 hover:bg-slate-900 px-3.5 py-2.5 rounded-full flex items-center gap-2 text-white transition-colors">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-          <span className="text-xs font-bold tracking-tight bg-gradient-to-r from-amber-300 via-white to-sky-300 bg-clip-text text-transparent">
-            Ask Gemini
+        <div className="bg-slate-950 hover:bg-slate-900 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-white transition-colors border border-amber-400/30">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 animate-pulse" />
+          <span className="text-[11px] sm:text-xs font-bold tracking-tight bg-gradient-to-r from-amber-300 via-white to-sky-300 bg-clip-text text-transparent">
+            Gemini AI
           </span>
         </div>
       </button>
@@ -735,6 +755,9 @@ export default function App() {
           }));
         }}
       />
+
+      {/* Offline Connectivity Notification */}
+      <OfflineIndicator />
     </div>
   );
 };
